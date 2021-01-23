@@ -7,27 +7,51 @@ app.get("/", (req, res) =>
 );
 
 app.get("/validate", (req, res) => {
-    req.setTimeout(10000);
+    console.log("Received request")
     const { str } = req.query;
+    let regex;
 
-    const badRegex = /^([a-zA-Z0-9])(([\-.]|[_]+)?([a-zA-Z0-9]+))*(@){1}[a-z0-9]+[.]{1}(([a-z]{2,3})|([a-z]{2,3}[.]{1}[a-z]{2,3}))$/;
-    const goodRegex = /^[a-z0-9](?!.*?[^\na-z0-9]{2})[^\s@]+@[^\s@]+\.[^\s@]+[a-z0-9]$/;
+    // Regex matches all strings with repeating ab characters. For example ab, abab, ababab 
+    if (regexType === VULNERABLE)
+        regex = /^(\w+\s?)*$/;
+    else
+        regex = /^((?=(\w+))\2\s?)*$/;
     
-    const match = badRegex.test(str);
+    const match = regex.test(str);
     
     if (match) {
         res.json({
-            message: "The e-mail is correct"
+            message: "The string matches"
         });
     } else {
         res.json({
-            message: "The e-mail is not correct"
+            message: "The string does not match"
         });
     }
 });
 
 const port = Number(process.env.PORT) || 3000;
+const args = process.argv.slice(2);
 
-app.listen(port, () =>
+const VULNERABLE = "vulnerable"
+const NOT_VULNERABLE = "not-vulnerable"
+
+if (args.length !== 1) {
+    console.log("Only one argument is expected. Provided " + args.length);
+    return;
+}
+
+const regexType = args[0]
+
+if (regexType !== VULNERABLE && regexType !== NOT_VULNERABLE) {
+    console.log(`Argument must be either ${VULNERABLE} or ${NOT_VULNERABLE}`);
+    return;
+}
+
+const timeout = require('connect-timeout');
+app.use(timeout('5s'));
+
+const server = app.listen(port, () =>
     console.log(`listening on http://localhost:${port}`)
 );
+server.setTimeout(500000);

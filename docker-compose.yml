@@ -1,0 +1,16 @@
+version: '3'
+services:
+  vuln:
+    restart: always
+    build: 
+      context: .
+      dockerfile: ./docker/vulnerable/Dockerfile
+    ports:
+     - "5000:3000"
+  not-vuln:
+    restart: always
+    build:
+      context: .
+      dockerfile: ./docker/not-vulnerable/Dockerfile
+    ports:
+      - "5001:3000"
